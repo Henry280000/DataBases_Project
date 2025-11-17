@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ session.get('user_nombre', 'Usuario') }}</span>
+            <span class="role-badge">{{ session.get('user_role', 'Gerente') }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/ventas">Ventas</a></li>
+                <li><a href="/ordenes-compra">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos">Ensayos Clinicos</a></li>
+                <li><a href="/reportes" class="active">Reportes</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <h1>Centro de Reportes</h1>
+            
+            <div class="section">
+                <h2>Reportes Disponibles</h2>
+                <p>Acceda a los diferentes reportes del sistema</p>
+            </div>
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Inventario</h3>
+                    <p class="card-label">Reporte completo de medicamentos en stock</p>
+                    <a href="/reportes/inventario" class="btn btn-primary mt-2">Ver Reporte</a>
+                </div>
+                <div class="card">
+                    <h3>Ventas</h3>
+                    <p class="card-label">Análisis de ventas por período</p>
+                    <a href="/reportes/ventas" class="btn btn-primary mt-2">Ver Reporte</a>
+                </div>
+                <div class="card">
+                    <h3>Compras</h3>
+                    <p class="card-label">Historial de órdenes de compra</p>
+                    <a href="/reportes/compras" class="btn btn-primary mt-2">Ver Reporte</a>
+                </div>
+                <div class="card">
+                    <h3>Ensayos Clínicos</h3>
+                    <p class="card-label">Estado de investigaciones</p>
+                    <a href="/reportes/ensayos" class="btn btn-primary mt-2">Ver Reporte</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

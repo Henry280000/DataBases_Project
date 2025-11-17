@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Acceso Denegado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error-icon {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .error-message {
+            font-size: 2rem;
+            margin: 1rem 0 2rem 0;
+        }
+        
+        .error-description {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .permission-info {
+            background: rgba(255,255,255,0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            max-width: 500px;
+        }
+        
+        .permission-info h3 {
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        
+        .permission-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .permission-info li {
+            padding: 0.5rem 0;
+            font-size: 1rem;
+        }
+        
+        .error-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn-error {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .btn-error:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🔒</div>
+        <h1 class="error-code">403</h1>
+        <h2 class="error-message">Acceso Denegado</h2>
+        <p class="error-description">
+            No tienes los permisos necesarios para acceder a esta página.
+        </p>
+        
+        <div class="permission-info">
+            <h3>Tu rol actual: {{ session.get('user_role', 'No autorizado') }}</h3>
+            <p>Esta sección requiere permisos específicos que tu rol actual no posee.</p>
+            <ul>
+                <li>👔 <strong>Gerente:</strong> Acceso completo</li>
+                <li>💊 <strong>Farmacéutico:</strong> Inventario, Ventas, Clientes</li>
+                <li>🔬 <strong>Investigador:</strong> Investigación, Reportes científicos</li>
+            </ul>
+        </div>
+        
+        <div class="error-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn-error">Volver al Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn-error">Cerrar Sesión</a>
+        </div>
+    </div>
+</body>
+</html>

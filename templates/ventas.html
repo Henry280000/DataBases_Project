@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ session.get('user_nombre', 'Usuario') }}</span>
+            <span class="role-badge">{{ session.get('user_role', 'Gerente') }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+                <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/ventas" class="active">Ventas</a></li>
+                <li><a href="/ordenes-compra">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos">Ensayos Clinicos</a></li>
+                <li><a href="/reportes">Reportes</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h1>Gestión de Ventas</h1>
+                <button class="btn btn-primary" onclick="document.getElementById('formNuevaVenta').style.display='block'">+ Nueva Venta</button>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Ventas del Día</h3>
+                    <p class="card-value">{{ ventas_hoy or 0 }}</p>
+                    <p class="card-label">Transacciones</p>
+                </div>
+                <div class="card">
+                    <h3>Ingreso del Día</h3>
+                    <p class="card-value">${{ "{:,.2f}".format(total_hoy or 0) }}</p>
+                    <p class="card-label">En efectivo</p>
+                </div>
+                <div class="card">
+                    <h3>Ventas del Mes</h3>
+                    <p class="card-value">{{ ventas_mes or 0 }}</p>
+                    <p class="card-label">Transacciones</p>
+                </div>
+                <div class="card">
+                    <h3>Ingreso del Mes</h3>
+                    <p class="card-value">${{ "{:,.2f}".format(total_mes or 0) }}</p>
+                    <p class="card-label">Total facturado</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Ventas Recientes</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID Venta</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Medicamento</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                                <th>Método Pago</th>
+                                <th>Vendedor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if ventas and ventas|length > 0 %}
+                                {% for venta in ventas %}
+                                <tr>
+                                    <td>#{{ venta.id }}</td>
+                                    <td>{{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') if venta.fecha_venta else 'N/A' }}</td>
+                                    <td>{{ venta.cliente_nombre or 'Cliente General' }}</td>
+                                    <td>{{ venta.medicamento_nombre or 'N/A' }}</td>
+                                    <td>{{ venta.cantidad or 0 }}</td>
+                                    <td>${{ "{:,.2f}".format(venta.total) }}</td>
+                                    <td>{{ venta.metodo_pago }}</td>
+                                    <td>{{ venta.vendedor_nombre or 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center" style="padding: 60px 20px;">
+                                        <p style="color: var(--text-secondary);">No hay ventas registradas</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="formNuevaVenta" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:40px;">
+                <div style="background:white; max-width:600px; margin:0 auto; padding:30px; border-radius:12px; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2>Nueva Venta</h2>
+                        <button onclick="document.getElementById('formNuevaVenta').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                    </div>
+                    <form method="POST" action="/ventas">
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Cliente</label>
+                            <input type="text" name="cliente_nombre" placeholder="Nombre del cliente (opcional)" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Medicamento *</label>
+                            <select name="medicamento_id" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                                <option value="">Seleccione un medicamento</option>
+                                {% if medicamentos %}
+                                    {% for med in medicamentos %}
+                                    <option value="{{ med.id }}">{{ med.nombre }} - Stock: {{ med.stock_total }} - ${{ "{:.2f}".format(med.precio) }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Cantidad *</label>
+                            <input type="number" name="cantidad" min="1" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Método de Pago *</label>
+                            <select name="metodo_pago" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                                <option value="">Seleccione método de pago</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Observaciones</label>
+                            <textarea name="observaciones" rows="3" placeholder="Notas adicionales (opcional)" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                        </div>
+                        <div style="display:flex; gap:12px; margin-top:24px;">
+                            <button type="submit" class="btn btn-primary" style="flex:1;">Registrar Venta</button>
+                            <button type="button" onclick="document.getElementById('formNuevaVenta').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

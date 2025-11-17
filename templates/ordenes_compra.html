@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes de Compra - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ session.get('user_nombre', 'Usuario') }}</span>
+            <span class="role-badge">{{ session.get('user_role', 'Gerente') }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+                <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/ventas">Ventas</a></li>
+                <li><a href="/ordenes-compra" class="active">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos">Ensayos Clinicos</a></li>
+                <li><a href="/reportes">Reportes</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h1>Órdenes de Compra</h1>
+                <button class="btn btn-primary" onclick="document.getElementById('formNuevaOrden').style.display='block'">+ Nueva Orden de Compra</button>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Órdenes Pendientes</h3>
+                    <p class="card-value">{{ ordenes_pendientes or 0 }}</p>
+                    <p class="card-label">Por recibir</p>
+                </div>
+                <div class="card">
+                    <h3>Órdenes Este Mes</h3>
+                    <p class="card-value">{{ ordenes_mes or 0 }}</p>
+                    <p class="card-label">Realizadas</p>
+                </div>
+                <div class="card">
+                    <h3>Total Invertido</h3>
+                    <p class="card-value">${{ "{:,.2f}".format(total_mes or 0) }}</p>
+                    <p class="card-label">Este mes</p>
+                </div>
+                <div class="card">
+                    <h3>Proveedores Activos</h3>
+                    <p class="card-value">{{ proveedores_activos or 0 }}</p>
+                    <p class="card-label">Disponibles</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2>Órdenes Recientes</h2>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <label style="font-weight: 500;">Ordenar por:</label>
+                        <select id="ordenSelect" onchange="ordenarTabla()" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
+                            <option value="fecha-desc">Fecha (Más reciente)</option>
+                            <option value="fecha-asc">Fecha (Más antigua)</option>
+                            <option value="estado">Estado</option>
+                            <option value="proveedor">Proveedor</option>
+                            <option value="total-desc">Total (Mayor a menor)</option>
+                            <option value="total-asc">Total (Menor a mayor)</option>
+                        </select>
+                        <select id="filtroEstado" onchange="filtrarPorEstado()" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px;">
+                            <option value="">Todos los estados</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Aprobada">Aprobada</option>
+                            <option value="Recibida">Recibida</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="tablaOrdenes">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Proveedor</th>
+                                <th>Medicamento</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if ordenes and ordenes|length > 0 %}
+                                {% for orden in ordenes %}
+                                <tr>
+                                    <td>#{{ orden.id }}</td>
+                                    <td>{{ orden.fecha_orden.strftime('%d/%m/%Y') if orden.fecha_orden else 'N/A' }}</td>
+                                    <td>{{ orden.proveedor_nombre }}</td>
+                                    <td>{{ orden.medicamento_nombre }}</td>
+                                    <td>{{ orden.cantidad }}</td>
+                                    <td>${{ "{:,.2f}".format(orden.precio_unitario) }}</td>
+                                    <td>${{ "{:,.2f}".format(orden.total) }}</td>
+                                    <td>
+                                        <span class="badge {% if orden.estado == 'Pendiente' %}badge-warning{% elif orden.estado == 'Recibida' %}badge-success{% elif orden.estado == 'Aprobada' %}badge-info{% else %}badge-danger{% endif %}">
+                                            {{ orden.estado }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if orden.estado == 'Pendiente' %}
+                                            <button onclick="cambiarEstado({{ orden.id }}, 'Aprobada')" class="btn btn-sm btn-success" style="padding:6px 12px; font-size:12px;">Aprobar</button>
+                                        {% elif orden.estado == 'Aprobada' %}
+                                            <button onclick="cambiarEstado({{ orden.id }}, 'Recibida')" class="btn btn-sm btn-primary" style="padding:6px 12px; font-size:12px;">Marcar Recibida</button>
+                                        {% else %}
+                                            <span style="color: var(--text-secondary); font-size:12px;">Completada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center" style="padding: 60px 20px;">
+                                        <p style="color: var(--text-secondary);">No hay órdenes de compra registradas</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="formNuevaOrden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:40px;">
+                <div style="background:white; max-width:700px; margin:0 auto; padding:30px; border-radius:12px; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2>Nueva Orden de Compra</h2>
+                        <button onclick="cerrarFormulario()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                    </div>
+                    <form method="POST" action="/ordenes-compra" id="formOrden">
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">1. Proveedor *</label>
+                            <select name="proveedor_id" id="selectProveedor" required onchange="cargarMedicamentosProveedor()" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                                <option value="">Seleccione un proveedor</option>
+                                {% if proveedores and proveedores|length > 0 %}
+                                    {% for prov in proveedores %}
+                                    <option value="{{ prov.id }}">{{ prov.nombre }}{% if prov.contacto_principal %} - {{ prov.contacto_principal }}{% endif %}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="" disabled>No hay proveedores disponibles</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">2. Medicamento *</label>
+                            <select name="medicamento_id" id="selectMedicamento" required onchange="calcularPrecio()" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;" disabled>
+                                <option value="">Primero seleccione un proveedor</option>
+                            </select>
+                            <div id="infoMedicamento" style="margin-top:8px; padding:10px; background:#f0f9ff; border-radius:6px; display:none;">
+                                <p style="margin:0; font-size:13px; color:#0369a1;"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">3. Cantidad *</label>
+                            <input type="number" name="cantidad" id="inputCantidad" min="1" required onchange="calcularPrecio()" oninput="calcularPrecio()" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        
+                        <div id="seccionPrecio" style="display:none; margin-bottom:20px; padding:16px; background:#f8fafc; border-radius:8px; border:2px solid #e5e7eb;">
+                            <h3 style="margin:0 0 12px 0; font-size:16px; color:#1e293b;">Información de Precio</h3>
+                            <div style="display:grid; gap:8px;">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:#64748b;">Precio Base:</span>
+                                    <span id="precioBase" style="font-weight:600;">-</span>
+                                </div>
+                                <div id="infoDescuento" style="padding:10px; background:#dcfce7; border-radius:6px; display:none;">
+                                    <p id="mensajeDescuento" style="margin:0; font-size:13px; color:#15803d; font-weight:500;"></p>
+                                </div>
+                                <div id="infoSinDescuento" style="padding:10px; background:#fef9c3; border-radius:6px; display:none;">
+                                    <p id="mensajeSinDescuento" style="margin:0; font-size:13px; color:#854d0e;"></p>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:2px solid #e5e7eb; margin-top:4px;">
+                                    <span style="font-weight:600; color:#1e293b;">Precio Final Unitario:</span>
+                                    <span id="precioFinal" style="font-weight:700; font-size:18px; color:#0891b2;">-</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding:12px; background:white; border-radius:6px; margin-top:8px;">
+                                    <span style="font-weight:700; font-size:16px; color:#1e293b;">TOTAL A PAGAR:</span>
+                                    <span id="totalPagar" style="font-weight:700; font-size:20px; color:#059669;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="precio_unitario" id="hiddenPrecioUnitario">
+                        
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Observaciones</label>
+                            <textarea name="observaciones" rows="2" placeholder="Notas adicionales (opcional)" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                        </div>
+                        
+                        <div style="display:flex; gap:12px; margin-top:24px;">
+                            <button type="submit" id="btnSubmit" class="btn btn-primary" style="flex:1;" disabled>Crear Orden</button>
+                            <button type="button" onclick="cerrarFormulario()" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function cambiarEstado(ordenId, nuevoEstado) {
+            if (!confirm('¿Está seguro de cambiar el estado de esta orden a ' + nuevoEstado + '?')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('estado', nuevoEstado);
+            
+            fetch('/api/ordenes-compra/estado/' + ordenId, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.mensaje);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.mensaje);
+                }
+            })
+            .catch(error => {
+                alert('Error al cambiar estado: ' + error);
+            });
+        }
+
+        // Variables para almacenar datos originales
+        let ordenesOriginales = [];
+
+        // Capturar datos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabla = document.getElementById('tablaOrdenes');
+            const filas = tabla.querySelectorAll('tbody tr');
+            
+            filas.forEach(fila => {
+                if (fila.cells.length > 1) { // Ignorar fila de "no hay datos"
+                    ordenesOriginales.push({
+                        id: fila.cells[0].textContent.trim(),
+                        fecha: fila.cells[1].textContent.trim(),
+                        proveedor: fila.cells[2].textContent.trim(),
+                        medicamento: fila.cells[3].textContent.trim(),
+                        cantidad: fila.cells[4].textContent.trim(),
+                        precioUnit: fila.cells[5].textContent.trim(),
+                        total: parseFloat(fila.cells[6].textContent.replace('$', '').replace(',', '')),
+                        estado: fila.cells[7].querySelector('.badge').textContent.trim(),
+                        html: fila.outerHTML
+                    });
+                }
+            });
+        });
+
+        function ordenarTabla() {
+            const criterio = document.getElementById('ordenSelect').value;
+            let ordenesOrdenadas = [...ordenesOriginales];
+
+            switch(criterio) {
+                case 'fecha-desc':
+                    ordenesOrdenadas.sort((a, b) => {
+                        return convertirFecha(b.fecha) - convertirFecha(a.fecha);
+                    });
+                    break;
+                case 'fecha-asc':
+                    ordenesOrdenadas.sort((a, b) => {
+                        return convertirFecha(a.fecha) - convertirFecha(b.fecha);
+                    });
+                    break;
+                case 'estado':
+                    const ordenEstados = {'Pendiente': 1, 'Aprobada': 2, 'Recibida': 3};
+                    ordenesOrdenadas.sort((a, b) => {
+                        return ordenEstados[a.estado] - ordenEstados[b.estado];
+                    });
+                    break;
+                case 'proveedor':
+                    ordenesOrdenadas.sort((a, b) => a.proveedor.localeCompare(b.proveedor));
+                    break;
+                case 'total-desc':
+                    ordenesOrdenadas.sort((a, b) => b.total - a.total);
+                    break;
+                case 'total-asc':
+                    ordenesOrdenadas.sort((a, b) => a.total - b.total);
+                    break;
+            }
+
+            actualizarTabla(ordenesOrdenadas);
+        }
+
+        function filtrarPorEstado() {
+            const estadoFiltro = document.getElementById('filtroEstado').value;
+            let ordenesFiltradas = ordenesOriginales;
+
+            if (estadoFiltro) {
+                ordenesFiltradas = ordenesOriginales.filter(orden => orden.estado === estadoFiltro);
+            }
+
+            // Aplicar ordenamiento actual
+            const tbody = document.querySelector('#tablaOrdenes tbody');
+            tbody.innerHTML = '';
+            
+            if (ordenesFiltradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 60px 20px;"><p style="color: var(--text-secondary);">No hay órdenes con este estado</p></td></tr>';
+            } else {
+                ordenesFiltradas.forEach(orden => {
+                    tbody.innerHTML += orden.html;
+                });
+            }
+        }
+
+        function actualizarTabla(ordenes) {
+            const tbody = document.querySelector('#tablaOrdenes tbody');
+            tbody.innerHTML = '';
+            
+            ordenes.forEach(orden => {
+                tbody.innerHTML += orden.html;
+            });
+        }
+
+        function convertirFecha(fechaStr) {
+            // Convierte fecha DD/MM/YYYY a timestamp
+            const partes = fechaStr.split('/');
+            return new Date(partes[2], partes[1] - 1, partes[0]).getTime();
+        }
+
+        // === FUNCIONES PARA FORMULARIO DINÁMICO ===
+        let medicamentosDelProveedor = [];
+        
+        function cerrarFormulario() {
+            document.getElementById('formNuevaOrden').style.display = 'none';
+            document.getElementById('formOrden').reset();
+            document.getElementById('selectMedicamento').disabled = true;
+            document.getElementById('selectMedicamento').innerHTML = '<option value="">Primero seleccione un proveedor</option>';
+            document.getElementById('seccionPrecio').style.display = 'none';
+            document.getElementById('infoMedicamento').style.display = 'none';
+            document.getElementById('btnSubmit').disabled = true;
+            medicamentosDelProveedor = [];
+        }
+        
+        async function cargarMedicamentosProveedor() {
+            const proveedorId = document.getElementById('selectProveedor').value;
+            const selectMedicamento = document.getElementById('selectMedicamento');
+            const infoMedicamento = document.getElementById('infoMedicamento');
+            
+            // Reset
+            selectMedicamento.innerHTML = '<option value="">Cargando...</option>';
+            selectMedicamento.disabled = true;
+            infoMedicamento.style.display = 'none';
+            document.getElementById('seccionPrecio').style.display = 'none';
+            document.getElementById('inputCantidad').value = '';
+            document.getElementById('btnSubmit').disabled = true;
+            
+            if (!proveedorId) {
+                selectMedicamento.innerHTML = '<option value="">Primero seleccione un proveedor</option>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/medicamentos-proveedor/${proveedorId}`);
+                const medicamentos = await response.json();
+                
+                medicamentosDelProveedor = medicamentos;
+                
+                if (medicamentos.length === 0) {
+                    selectMedicamento.innerHTML = '<option value="">Este proveedor no tiene medicamentos disponibles</option>';
+                    return;
+                }
+                
+                selectMedicamento.innerHTML = '<option value="">Seleccione un medicamento</option>';
+                medicamentos.forEach(med => {
+                    const option = document.createElement('option');
+                    option.value = med.id_medicamento;
+                    option.textContent = `${med.nombre}${med.principio_activo ? ' (' + med.principio_activo + ')' : ''}`;
+                    option.dataset.precioBase = med.precio_base;
+                    option.dataset.cantidadMin = med.cantidad_minima_descuento;
+                    option.dataset.descuento = med.porcentaje_descuento;
+                    selectMedicamento.appendChild(option);
+                });
+                
+                selectMedicamento.disabled = false;
+                
+            } catch (error) {
+                console.error('Error cargando medicamentos:', error);
+                selectMedicamento.innerHTML = '<option value="">Error al cargar medicamentos</option>';
+            }
+        }
+        
+        async function calcularPrecio() {
+            const proveedorId = document.getElementById('selectProveedor').value;
+            const medicamentoId = document.getElementById('selectMedicamento').value;
+            const cantidad = parseInt(document.getElementById('inputCantidad').value) || 0;
+            
+            const seccionPrecio = document.getElementById('seccionPrecio');
+            const infoMedicamento = document.getElementById('infoMedicamento');
+            const infoDescuento = document.getElementById('infoDescuento');
+            const infoSinDescuento = document.getElementById('infoSinDescuento');
+            
+            if (!proveedorId || !medicamentoId || cantidad < 1) {
+                seccionPrecio.style.display = 'none';
+                infoMedicamento.style.display = 'none';
+                document.getElementById('btnSubmit').disabled = true;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/precio-proveedor?proveedor=${proveedorId}&medicamento=${medicamentoId}&cantidad=${cantidad}`);
+                
+                if (!response.ok) {
+                    throw new Error('No se pudo obtener el precio');
+                }
+                
+                const precio = await response.json();
+                
+                // Mostrar información del medicamento
+                const medicamentoSeleccionado = medicamentosDelProveedor.find(m => m.id_medicamento == medicamentoId);
+                if (medicamentoSeleccionado && medicamentoSeleccionado.info_precio) {
+                    infoMedicamento.querySelector('p').textContent = '💰 ' + medicamentoSeleccionado.info_precio;
+                    infoMedicamento.style.display = 'block';
+                }
+                
+                // Mostrar precios
+                document.getElementById('precioBase').textContent = `$${parseFloat(precio.precio_base).toFixed(2)}`;
+                document.getElementById('precioFinal').textContent = `$${parseFloat(precio.precio_final).toFixed(2)}`;
+                
+                const total = parseFloat(precio.precio_final) * cantidad;
+                document.getElementById('totalPagar').textContent = `$${total.toFixed(2)}`;
+                
+                // Guardar precio en campo oculto
+                document.getElementById('hiddenPrecioUnitario').value = precio.precio_final;
+                
+                // Mostrar mensaje de descuento
+                if (cantidad >= precio.cantidad_minima_descuento && precio.porcentaje_descuento > 0) {
+                    infoDescuento.style.display = 'block';
+                    infoSinDescuento.style.display = 'none';
+                    document.getElementById('mensajeDescuento').textContent = 
+                        `✓ ${precio.mensaje_descuento} | Ahorro: $${((precio.precio_base - precio.precio_final) * cantidad).toFixed(2)}`;
+                } else {
+                    infoDescuento.style.display = 'none';
+                    if (precio.cantidad_minima_descuento > cantidad) {
+                        infoSinDescuento.style.display = 'block';
+                        document.getElementById('mensajeSinDescuento').textContent = 
+                            `ℹ️ ${precio.mensaje_descuento} (faltan ${precio.cantidad_minima_descuento - cantidad} unidades)`;
+                    } else {
+                        infoSinDescuento.style.display = 'none';
+                    }
+                }
+                
+                seccionPrecio.style.display = 'block';
+                document.getElementById('btnSubmit').disabled = false;
+                
+            } catch (error) {
+                console.error('Error calculando precio:', error);
+                alert('Error al calcular el precio. Verifique que exista un precio configurado para este proveedor y medicamento.');
+                seccionPrecio.style.display = 'none';
+                document.getElementById('btnSubmit').disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>

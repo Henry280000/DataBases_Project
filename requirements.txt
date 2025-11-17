@@ -1,0 +1,20 @@
+# PHARMAFLOW SOLUTIONS - Dependencias Python
+
+# Framework Web
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# Base de Datos MySQL
+mysql-connector-python==8.2.0
+
+# Base de Datos MongoDB
+pymongo==4.6.0
+
+# Seguridad
+bcrypt==4.1.1
+
+# Utilidades
+python-dotenv==1.0.0
+
+# Produccion (opcional)
+gunicorn==21.2.0

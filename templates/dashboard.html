@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta http-equiv="refresh" content="300">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xl);
+            letter-spacing: -0.5px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ usuario.nombre_completo }}</span>
+            <span class="role-badge">{{ usuario.rol }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/ventas">Ventas</a></li>
+                <li><a href="/ordenes-compra">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos">Ensayos Clinicos</a></li>
+                <li><a href="/reportes">Reportes</a></li>
+                {% if usuario.rol == 'Gerente' %}
+                <li><a href="/usuarios">Usuarios</a></li>
+                {% endif %}
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <h1>Dashboard Principal</h1>
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Inventario Total</h3>
+                    <p class="card-value">${{ "{:,.2f}".format(estadisticas.valor_total) }}</p>
+                    <p class="card-label">Valor total en inventario</p>
+                </div>
+                
+                <div class="card">
+                    <h3>Medicamentos</h3>
+                    <p class="card-value">{{ estadisticas.total_medicamentos }}</p>
+                    <p class="card-label">Tipos diferentes</p>
+                </div>
+                
+                {% if usuario.rol != 'Investigador' %}
+                <div class="card">
+                    <h3>Ventas del Mes</h3>
+                    <p class="card-value">${{ "{:,.2f}".format(estadisticas.ventas_mes) }}</p>
+                    <p class="card-label">Monto total facturado</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="section">
+                <h2>Inventario Actual</h2>
+                <div class="table-controls" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <form method="GET" action="/dashboard" style="display: flex; gap: 8px; flex: 1;">
+                        <input type="search" name="search" placeholder="Buscar medicamento por nombre, codigo o presentacion..." value="{{ request.args.get('search', '') }}">
+                        <button type="submit" class="btn btn-success" style="white-space: nowrap;">Buscar</button>
+                        {% if request.args.get('search') %}
+                        <a href="/dashboard" class="btn btn-secondary" style="white-space: nowrap;">Limpiar Filtros</a>
+                        {% endif %}
+                    </form>
+                    {% if usuario.rol in ['Gerente', 'Farmacéutico'] %}
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="mostrarLotesCaducados()" class="btn btn-danger" style="white-space: nowrap;">Ver Lotes Caducados</button>
+                        <button onclick="mostrarFormularioMedicamento()" class="btn btn-success" style="white-space: nowrap;">+ Nuevo Medicamento</button>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código Lote</th>
+                                <th>Medicamento</th>
+                                <th>Categoría</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Caducidad</th>
+                                <th>Días Restantes</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if inventario %}
+                                {% for item in inventario %}
+                                <tr>
+                                    <td>{{ item.codigo_lote }}</td>
+                                    <td>{{ item.nombre_medicamento }}</td>
+                                    <td>{{ item.categoria }}</td>
+                                    <td>{{ item.cantidad_disponible }}</td>
+                                    <td>${{ "{:,.2f}".format(item.precio_unitario) }}</td>
+                                    <td>{{ item.fecha_caducidad.strftime('%d/%m/%Y') if item.fecha_caducidad else 'N/A' }}</td>
+                                    <td>
+                                        {% if item.dias_para_caducar is not none %}
+                                            {% if item.dias_para_caducar < 0 %}
+                                                <span style="color: var(--danger-color); font-weight: 600;">{{ item.dias_para_caducar }}</span>
+                                            {% else %}
+                                                {{ item.dias_para_caducar }}
+                                            {% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.dias_para_caducar is not none %}
+                                            {% if item.dias_para_caducar < 0 %}
+                                                <span class="badge badge-danger">CADUCADO</span>
+                                            {% elif item.dias_para_caducar < 30 %}
+                                                <span class="badge badge-danger">Crítico</span>
+                                            {% elif item.dias_para_caducar < 90 %}
+                                                <span class="badge badge-warning">Alerta</span>
+                                            {% else %}
+                                                <span class="badge badge-success">Vigente</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-success">Vigente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="8" style="text-align: center;">No hay datos de inventario disponibles</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Medicamentos Próximos a Caducar</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código Lote</th>
+                                <th>Medicamento</th>
+                                <th>Cantidad</th>
+                                <th>Fecha Caducidad</th>
+                                <th>Días Restantes</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if medicamentos_caducar %}
+                                {% for item in medicamentos_caducar %}
+                                <tr>
+                                    <td>{{ item.codigo_lote }}</td>
+                                    <td>{{ item.medicamento_nombre }}</td>
+                                    <td>{{ item.cantidad_disponible }}</td>
+                                    <td>{{ item.fecha_caducidad.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {% if item.dias_restantes < 0 %}
+                                            <span style="color: var(--danger-color); font-weight: 600;">{{ item.dias_restantes }}</span>
+                                        {% else %}
+                                            {{ item.dias_restantes }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.dias_restantes < 0 %}
+                                        <span class="badge badge-danger">CADUCADO</span>
+                                        {% elif item.dias_restantes < 30 %}
+                                        <span class="badge badge-danger">Crítico</span>
+                                        {% elif item.dias_restantes < 60 %}
+                                        <span class="badge badge-warning">Alerta</span>
+                                        {% else %}
+                                        <span class="badge badge-info">Vigente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="6" style="text-align: center;">No hay medicamentos próximos a caducar</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Lotes Caducados -->
+    <div id="modalLotesCaducados" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:40px;">
+        <div style="background:white; max-width:900px; margin:0 auto; padding:30px; border-radius:12px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Lotes Caducados</h2>
+                <button onclick="cerrarModal('modalLotesCaducados')" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="contenidoLotesCaducados"></div>
+        </div>
+    </div>
+
+    <!-- Modal para Nuevo Medicamento -->
+    <div id="modalNuevoMedicamento" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:40px;">
+        <div style="background:white; max-width:600px; margin:0 auto; padding:30px; border-radius:12px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Nuevo Medicamento</h2>
+                <button onclick="cerrarModal('modalNuevoMedicamento')" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <form id="formNuevoMedicamento" onsubmit="crearMedicamento(event)">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Nombre del Medicamento *</label>
+                    <input type="text" name="nombre" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Principio Activo *</label>
+                    <input type="text" name="principio_activo" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Categoría *</label>
+                    <select name="id_categoria" id="categoriaSelect" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        <option value="">Seleccione una categoría</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Descripción</label>
+                    <textarea name="descripcion" rows="2" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Indicaciones</label>
+                    <textarea name="indicaciones" rows="2" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Contraindicaciones</label>
+                    <textarea name="contraindicaciones" rows="2" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:500;">Dosis Recomendada</label>
+                    <input type="text" name="dosis_recomendada" placeholder="Ej: 500mg cada 8 horas" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                </div>
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Crear Medicamento</button>
+                    <button type="button" onclick="cerrarModal('modalNuevoMedicamento')" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function cerrarModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function mostrarLotesCaducados() {
+            try {
+                const response = await fetch('/api/lotes-caducados');
+                const lotes = await response.json();
+                
+                let html = '<div class="table-container"><table><thead><tr><th>Código</th><th>Medicamento</th><th>Cantidad</th><th>Caducidad</th><th>Días Caducado</th><th>Acción</th></tr></thead><tbody>';
+                
+                if (lotes.length === 0) {
+                    html += '<tr><td colspan="6" style="text-align:center;">No hay lotes caducados</td></tr>';
+                } else {
+                    lotes.forEach(lote => {
+                        html += `<tr>
+                            <td>${lote.codigo_lote}</td>
+                            <td>${lote.medicamento_nombre}</td>
+                            <td>${lote.cantidad_actual}</td>
+                            <td>${new Date(lote.fecha_caducidad).toLocaleDateString('es-MX')}</td>
+                            <td>${lote.dias_caducado} días</td>
+                            <td><button onclick="eliminarLote(${lote.id_lote})" class="btn btn-danger" style="padding:6px 12px; font-size:0.9em;">Eliminar</button></td>
+                        </tr>`;
+                    });
+                }
+                
+                html += '</tbody></table></div>';
+                document.getElementById('contenidoLotesCaducados').innerHTML = html;
+                document.getElementById('modalLotesCaducados').style.display = 'block';
+                
+            } catch (error) {
+                alert('Error al cargar lotes caducados: ' + error.message);
+            }
+        }
+
+        async function eliminarLote(loteId) {
+            if (!confirm('¿Está seguro de eliminar este lote caducado?')) return;
+            
+            try {
+                const response = await fetch(`/api/lotes/${loteId}/eliminar`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Lote eliminado correctamente');
+                    mostrarLotesCaducados(); // Recargar lista
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error al eliminar lote: ' + error.message);
+            }
+        }
+
+        async function mostrarFormularioMedicamento() {
+            try {
+                // Cargar categorías
+                const response = await fetch('/api/categorias');
+                const categorias = await response.json();
+                
+                const select = document.getElementById('categoriaSelect');
+                select.innerHTML = '<option value="">Seleccione una categoría</option>';
+                categorias.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id_categoria}">${cat.nombre}</option>`;
+                });
+                
+                document.getElementById('modalNuevoMedicamento').style.display = 'block';
+            } catch (error) {
+                alert('Error al cargar categorías: ' + error.message);
+            }
+        }
+
+        async function crearMedicamento(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {
+                nombre: formData.get('nombre'),
+                principio_activo: formData.get('principio_activo'),
+                id_categoria: parseInt(formData.get('id_categoria')),
+                descripcion: formData.get('descripcion') || null,
+                indicaciones: formData.get('indicaciones') || null,
+                contraindicaciones: formData.get('contraindicaciones') || null,
+                dosis_recomendada: formData.get('dosis_recomendada') || null
+            };
+            
+            try {
+                const response = await fetch('/api/medicamentos/nuevo', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Medicamento creado correctamente');
+                    cerrarModal('modalNuevoMedicamento');
+                    event.target.reset();
+                    location.reload(); // Recargar para ver el nuevo medicamento
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error al crear medicamento: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

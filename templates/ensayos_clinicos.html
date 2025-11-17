@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ensayos Clínicos - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ session.get('user_nombre', 'Usuario') }}</span>
+            <span class="role-badge">{{ session.get('user_role', 'Gerente') }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/ventas">Ventas</a></li>
+                <li><a href="/ordenes-compra">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos" class="active">Ensayos Clinicos</a></li>
+                <li><a href="/reportes">Reportes</a></li>
+                <li><a href="/usuarios">Usuarios</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h1>Ensayos Clínicos</h1>
+                <button class="btn btn-primary" onclick="document.getElementById('formNuevoEnsayo').style.display='block'">+ Nuevo Ensayo Clínico</button>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Ensayos Activos</h3>
+                    <p class="card-value">{{ ensayos_activos or 0 }}</p>
+                    <p class="card-label">En progreso</p>
+                </div>
+                <div class="card">
+                    <h3>Ensayos Activos</h3>
+                    <p class="card-value">{{ ensayos_activos or 0 }}</p>
+                    <p class="card-label">En curso</p>
+                </div>
+                <div class="card">
+                    <h3>Total Ensayos</h3>
+                    <p class="card-value">{{ total_ensayos or 0 }}</p>
+                    <p class="card-label">Registrados</p>
+                </div>
+                <div class="card">
+                    <h3>Investigadores</h3>
+                    <p class="card-value">{{ total_investigadores or 0 }}</p>
+                    <p class="card-label">Participando</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Listado de Ensayos</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título</th>
+                                <th>Medicamento</th>
+                                <th>Fase</th>
+                                <th>Estado</th>
+                                <th>Fecha Inicio</th>
+                                <th>Investigador</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if ensayos and ensayos|length > 0 %}
+                                {% for ensayo in ensayos %}
+                                <tr>
+                                    <td>{{ ensayo.trial_id }}</td>
+                                    <td>{{ ensayo.titulo }}</td>
+                                    <td>{{ ensayo.medicamento_nombre }}</td>
+                                    <td>{{ ensayo.fase }}</td>
+                                    <td>
+                                        <span class="badge {% if ensayo.estado == 'En Curso' %}badge-success{% elif ensayo.estado == 'Completado' %}badge-info{% else %}badge-warning{% endif %}">
+                                            {{ ensayo.estado }}
+                                        </span>
+                                    </td>
+                                    <td>{{ ensayo.fecha_inicio.strftime('%d/%m/%Y') if ensayo.fecha_inicio is not string else ensayo.fecha_inicio }}</td>
+                                    <td>
+                                        {% if ensayo.investigadores and ensayo.investigadores|length > 0 %}
+                                            {{ ensayo.investigadores[0].nombre }}
+                                        {% else %}
+                                            No asignado
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center" style="padding: 60px 20px;">
+                                        <p style="color: var(--text-secondary);">No hay ensayos clínicos registrados</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="formNuevoEnsayo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:40px;">
+                <div style="background:white; max-width:600px; margin:0 auto; padding:30px; border-radius:12px; max-height:90vh; overflow-y:auto;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2>Nuevo Ensayo Clínico</h2>
+                        <button onclick="document.getElementById('formNuevoEnsayo').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                    </div>
+                    <form method="POST" action="/ensayos-clinicos">
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">ID del Ensayo *</label>
+                            <input type="text" name="trial_id" required placeholder="Ej: CT-2025-001" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Título del Ensayo *</label>
+                            <input type="text" name="titulo" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Medicamento * 
+                                <span style="color:#6b7280; font-weight:normal; font-size:0.9em;">(Total: {{ medicamentos|length if medicamentos else 0 }})</span>
+                            </label>
+                            <select id="medicamento_select" name="medicamento_id" required style="width:100%; padding:12px; border:2px solid #e5e7eb; border-radius:6px; font-size:14px;" onchange="actualizarNombreMedicamento()">
+                                <option value="">-- Seleccione un medicamento --</option>
+                                {% if medicamentos %}
+                                    {% for med in medicamentos %}
+                                    <option value="{{ med.id }}" data-nombre="{{ med.nombre }}">
+                                        {{ med.nombre }} - {{ med.categoria_nombre }}
+                                    </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="" disabled>No hay medicamentos disponibles</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Nombre del Medicamento (autocompletado)</label>
+                            <input type="text" id="medicamento_nombre" name="medicamento_nombre" readonly style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px; background-color:#f9fafb;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Fase *</label>
+                            <select name="fase" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                                <option value="">Seleccione una fase</option>
+                                <option value="Fase I">Fase I</option>
+                                <option value="Fase II">Fase II</option>
+                                <option value="Fase III">Fase III</option>
+                                <option value="Fase IV">Fase IV</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Estado</label>
+                            <select name="estado" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                                <option value="En Curso" selected>En Curso</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Suspendido">Suspendido</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Fecha de Inicio *</label>
+                            <input type="date" name="fecha_inicio" required style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:500;">Objetivo Principal</label>
+                            <textarea name="objetivo_principal" rows="3" placeholder="Descripción del objetivo del ensayo clínico" style="width:100%; padding:10px; border:2px solid #e5e7eb; border-radius:6px;"></textarea>
+                        </div>
+                        <div style="display:flex; gap:12px; margin-top:24px;">
+                            <button type="submit" class="btn btn-primary" style="flex:1;">Crear Ensayo</button>
+                            <button type="button" onclick="document.getElementById('formNuevoEnsayo').style.display='none'" class="btn btn-secondary" style="flex:1;">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function actualizarNombreMedicamento() {
+            const select = document.getElementById('medicamento_select');
+            const nombreInput = document.getElementById('medicamento_nombre');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value) {
+                nombreInput.value = selectedOption.getAttribute('data-nombre');
+            } else {
+                nombreInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>

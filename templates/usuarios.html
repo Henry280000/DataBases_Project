@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - PharmaFlow Solutions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>PharmaFlow Solutions</h2>
+        </div>
+        <div class="nav-user">
+            <span>{{ session.get('user_nombre', 'Usuario') }}</span>
+            <span class="role-badge">{{ session.get('user_role', 'Gerente') }}</span>
+            <a href="/logout" class="btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+                <aside class="sidebar">
+            <ul class="menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/ventas">Ventas</a></li>
+                <li><a href="/ordenes-compra">Ordenes de Compra</a></li>
+                <li><a href="/ensayos-clinicos">Ensayos Clinicos</a></li>
+                <li><a href="/reportes">Reportes</a></li>
+                <li><a href="/usuarios" class="active">Usuarios</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <h1>Gestión de Usuarios</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>Total Usuarios</h3>
+                    <p class="card-value">{{ total_usuarios or 0 }}</p>
+                    <p class="card-label">Registrados en el sistema</p>
+                </div>
+                <div class="card">
+                    <h3>Usuarios Activos</h3>
+                    <p class="card-value">{{ usuarios_activos or 0 }}</p>
+                    <p class="card-label">Con acceso habilitado</p>
+                </div>
+                <div class="card">
+                    <h3>Gerentes</h3>
+                    <p class="card-value">{{ gerentes or 0 }}</p>
+                    <p class="card-label">Administradores</p>
+                </div>
+                <div class="card">
+                    <h3>Vendedores</h3>
+                    <p class="card-value">{{ vendedores or 0 }}</p>
+                    <p class="card-label">Personal de venta</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Listado de Usuarios</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Nombre Completo</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Último Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if usuarios and usuarios|length > 0 %}
+                                {% for usuario in usuarios %}
+                                <tr>
+                                    <td>#{{ usuario.id_usuario }}</td>
+                                    <td>{{ usuario.username }}</td>
+                                    <td>{{ usuario.nombre_completo }}</td>
+                                    <td>{{ usuario.email }}</td>
+                                    <td><span class="badge badge-info">{{ usuario.rol }}</span></td>
+                                    <td>
+                                        <span class="badge {% if usuario.activo %}badge-success{% else %}badge-danger{% endif %}">
+                                            {% if usuario.activo %}Activo{% else %}Inactivo{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') if usuario.ultimo_acceso else 'Nunca' }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center" style="padding: 60px 20px;">
+                                        <p style="color: var(--text-secondary);">No hay usuarios registrados</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

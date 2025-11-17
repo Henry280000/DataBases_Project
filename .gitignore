@@ -1,0 +1,40 @@
+# Archivos temporales
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Base de datos local
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Archivos de entorno
+.env
+
+# Uploads
+uploads/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Documentacion interna
+DOCUMENTACION_TECNICA.md
+ARQUITECTURA.md
