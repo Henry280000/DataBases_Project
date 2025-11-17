@@ -14,7 +14,7 @@ source venv/bin/activate
 python app.py
 ```
 
-## 🗄 Comandos MySQL
+## Comandos MySQL
 
 ### Conectarse
 ```bash
@@ -159,7 +159,7 @@ db.getCollectionNames().forEach(function(col) {
 db.clinical_trials.validate()
 ```
 
-## 🧪 Pruebas con API
+## Pruebas con API
 
 ### Login
 ```bash
@@ -250,7 +250,7 @@ pip install --force-reinstall -r requirements.txt
 pip check
 ```
 
-## 🐛 Debugging
+## Debugging
 
 ### Ver logs de MySQL
 ```bash
@@ -418,7 +418,3 @@ WHERE l.estado = 'Disponible'
 GROUP BY c.id_categoria
 ORDER BY valor_total DESC;
 ```
-
----
-
-💡 **Tip:** Guardar estos comandos en un archivo de referencia rápida
