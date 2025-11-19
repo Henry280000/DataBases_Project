@@ -275,7 +275,7 @@ proyecto 2 bases de datos/
 - Búsqueda por compuesto químico
 - Niveles de severidad y recomendaciones
 
-## 🧪 Casos de Uso Implementados
+## Casos de Uso Implementados
 
 ### Caso 1: Control de Concurrencia en Ventas
 Dos farmacéuticos intentan vender el mismo lote simultáneamente:
@@ -322,7 +322,7 @@ Ensayo Clínico puede tener campos variables:
 - **Índices Compuestos:** Optimización de consultas frecuentes
 - **Agregación:** Pipeline para estadísticas
 
-## 🐛 Solución de Problemas
+## Solución de Problemas
 
 ### Error: "Access denied for user"
 ```bash
@@ -354,7 +354,7 @@ load('database/mongodb_setup.js')
 pip install --upgrade -r requirements.txt
 ```
 
-## 📚 Documentación Adicional
+## Documentación Adicional
 
 ### API Endpoints
 
@@ -376,14 +376,6 @@ pip install --upgrade -r requirements.txt
 - `GET /api/ensayos-clinicos` - Listar ensayos
 - `POST /api/ensayos-clinicos` - Crear ensayo
 - `GET /api/ensayo-clinico/<id>` - Detalle de ensayo
-
-## 👨‍ Autor
-
-Proyecto desarrollado para el curso de Bases de Datos
-
-## 📄 Licencia
-
-Este proyecto es de uso académico
 
 ---
 
