@@ -80,9 +80,15 @@ print_success "Entorno virtual activado"
 # Instalar dependencias
 echo ""
 echo "6. Instalando dependencias Python..."
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt
-print_success "Dependencias instaladas"
+echo "   Esto puede tomar varios minutos..."
+pip install --upgrade pip --quiet
+if pip install -r requirements.txt --quiet; then
+    print_success "Dependencias instaladas"
+else
+    print_error "Error instalando dependencias"
+    echo "Intenta manualmente: pip install -r requirements.txt"
+    exit 1
+fi
 
 # Configurar MySQL
 echo ""
@@ -134,27 +140,53 @@ if pgrep -x "mongod" > /dev/null; then
     print_success "MongoDB está corriendo"
 else
     print_warning "MongoDB no está corriendo"
-    echo "Iniciando MongoDB..."
-    brew services start mongodb-community
-    sleep 3
+    echo "¿Deseas intentar iniciarlo automáticamente? (s/n)"
+    read -r START_MONGO
+    if [ "$START_MONGO" = "s" ]; then
+        echo "Iniciando MongoDB..."
+        if command -v brew &> /dev/null; then
+            brew services start mongodb-community
+        else
+            sudo systemctl start mongod
+        fi
+        echo "Esperando 5 segundos..."
+        sleep 5
+    else
+        print_error "MongoDB debe estar corriendo para continuar"
+        echo "Inicia MongoDB manualmente y vuelve a ejecutar el script"
+        exit 1
+    fi
+fi
+
+# Verificar conexión a MongoDB
+echo "Probando conexión a MongoDB..."
+if mongosh --quiet --eval "db.version()" > /dev/null 2>&1; then
+    print_success "Conexión a MongoDB exitosa"
+else
+    print_error "No se puede conectar a MongoDB"
+    echo "Verifica que MongoDB esté corriendo: mongosh --eval 'db.version()'"
+    exit 1
 fi
 
 # Ejecutar scripts MongoDB (Python)
 echo "Configurando MongoDB..."
-python database/mongodb_setup.py
-if [ $? -eq 0 ]; then
+python database/mongodb_setup.py 2>&1
+MONGO_SETUP_EXIT=$?
+if [ $MONGO_SETUP_EXIT -eq 0 ]; then
     print_success "MongoDB configurado"
 else
-    print_warning "Error configurando MongoDB"
+    print_error "Error configurando MongoDB (código: $MONGO_SETUP_EXIT)"
+    echo "Revisa que MongoDB esté corriendo: mongosh --eval 'db.version()'"
     exit 1
 fi
 
 echo "Cargando datos MongoDB..."
-python database/mongodb_seed.py
-if [ $? -eq 0 ]; then
+python database/mongodb_seed.py 2>&1
+MONGO_SEED_EXIT=$?
+if [ $MONGO_SEED_EXIT -eq 0 ]; then
     print_success "Datos MongoDB cargados"
 else
-    print_warning "Error cargando datos MongoDB"
+    print_error "Error cargando datos MongoDB (código: $MONGO_SEED_EXIT)"
     exit 1
 fi
 

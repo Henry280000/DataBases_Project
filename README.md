@@ -37,13 +37,41 @@ PharmaFlow Solutions es un sistema robusto diseñado para empresas farmacéutica
 - Gestión de ventas e inventario
 - Consulta de ensayos clínicos
 
-##  Instalación
+##  Instalación Rápida
 
-### Requisitos Previos
+### IMPORTANTE: Lee INSTALACION.md antes de empezar
+
+### Paso 1: Verificar Requisitos
+```bash
+# Ejecutar script de verificación
+chmod +x check_requirements.sh
+./check_requirements.sh
+```
+
+### Paso 2: Instalación Automática
+```bash
+# Dar permisos y ejecutar
+chmod +x install.sh
+./install.sh
+```
+
+### Paso 3: Iniciar Aplicación
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+O manualmente:
+```bash
+source venv/bin/activate
+python app.py
+```
+
+### Requisitos del Sistema
 
 ```bash
-# Python 3.8+
-python --version
+# Python 3.9+
+python3 --version
 
 # MySQL 8.0+
 mysql --version
@@ -135,7 +163,7 @@ python app.py
 
 La aplicación estará disponible en: `http://localhost:5000`
 
-## 👤 Usuarios de Prueba
+## Usuarios de Prueba
 
 ### Gerente (Acceso Total)
 - **Usuario:** `admin_gerente`
@@ -152,7 +180,7 @@ La aplicación estará disponible en: `http://localhost:5000`
 - **Contraseña:** `PharmaFlow123!`
 - **Permisos:** Lectura de datos relacionales, acceso completo a ensayos clínicos
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 proyecto 2 bases de datos/
