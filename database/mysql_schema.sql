@@ -237,7 +237,7 @@ CREATE PROCEDURE sp_registrar_venta(
     IN p_id_cliente INT,
     IN p_id_usuario INT,
     IN p_metodo_pago VARCHAR(20),
-    IN p_detalles JSON,
+    IN p_detalles TEXT,
     OUT p_id_venta INT,
     OUT p_mensaje VARCHAR(255)
 )
@@ -367,8 +367,8 @@ BEGIN
             'lotes',
             NEW.id_lote,
             'UPDATE',
-            JSON_OBJECT('cantidad_actual', OLD.cantidad_actual, 'version', OLD.version),
-            JSON_OBJECT('cantidad_actual', NEW.cantidad_actual, 'version', NEW.version)
+            CONCAT('{"cantidad_actual":', OLD.cantidad_actual, ',"version":', OLD.version, '}'),
+            CONCAT('{"cantidad_actual":', NEW.cantidad_actual, ',"version":', NEW.version, '}')
         );
     END IF;
 END //
@@ -385,7 +385,7 @@ BEGIN
         NEW.id_venta,
         'INSERT',
         NEW.id_usuario,
-        JSON_OBJECT('numero_venta', NEW.numero_venta, 'total', NEW.total)
+        CONCAT('{"numero_venta":"', NEW.numero_venta, '","total":', NEW.total, '}')
     );
 END //
 
