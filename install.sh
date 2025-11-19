@@ -102,8 +102,7 @@ echo ""
 
 # Probar conexión MySQL
 echo "Probando conexión a MySQL..."
-mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -e "SELECT 1;" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
+if mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -e "SELECT 1;" > /dev/null 2>&1; then
     print_success "Conexión a MySQL exitosa"
 else
     print_error "No se pudo conectar a MySQL"
@@ -114,21 +113,47 @@ fi
 # Ejecutar scripts MySQL
 echo ""
 echo "8. Creando base de datos MySQL..."
-mysql -u $MYSQL_USER -p$MYSQL_PASSWORD < database/mysql_schema.sql
-if [ $? -eq 0 ]; then
+echo "   (Ignorar el warning sobre 'insecure password', es normal)"
+
+# Crear archivo temporal de configuración
+MYSQL_CONFIG=$(mktemp)
+cat > "$MYSQL_CONFIG" << EOF
+[client]
+user=$MYSQL_USER
+password=$MYSQL_PASSWORD
+EOF
+chmod 600 "$MYSQL_CONFIG"
+
+# Ejecutar scripts usando el archivo de configuración
+mysql --defaults-extra-file="$MYSQL_CONFIG" < database/mysql_schema.sql 2>&1 | grep -v "insecure"
+if [ ${PIPESTATUS[0]} -eq 0 ]; then
     print_success "Schema creado"
 else
     print_error "Error creando schema"
+    rm -f "$MYSQL_CONFIG"
     exit 1
 fi
 
 echo "Creando roles y privilegios..."
-mysql -u $MYSQL_USER -p$MYSQL_PASSWORD < database/mysql_roles_privileges.sql
-print_success "Roles creados"
+mysql --defaults-extra-file="$MYSQL_CONFIG" < database/mysql_roles_privileges.sql 2>&1 | grep -v "insecure"
+if [ ${PIPESTATUS[0]} -eq 0 ]; then
+    print_success "Roles creados"
+else
+    print_warning "Error creando roles (puede ser normal si ya existen)"
+fi
 
 echo "Cargando datos iniciales..."
-mysql -u $MYSQL_USER -p$MYSQL_PASSWORD < database/mysql_data_seed.sql
-print_success "Datos cargados"
+mysql --defaults-extra-file="$MYSQL_CONFIG" < database/mysql_data_seed.sql 2>&1 | grep -v "insecure"
+if [ ${PIPESTATUS[0]} -eq 0 ]; then
+    print_success "Datos cargados"
+else
+    print_error "Error cargando datos"
+    rm -f "$MYSQL_CONFIG"
+    exit 1
+fi
+
+# Limpiar archivo temporal
+rm -f "$MYSQL_CONFIG"
 
 # Configurar MongoDB
 echo ""

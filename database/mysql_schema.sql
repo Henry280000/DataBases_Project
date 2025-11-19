@@ -103,6 +103,23 @@ CREATE TABLE detalles_orden_compra (
     INDEX idx_medicamento (id_medicamento)
 ) ENGINE=InnoDB;
 
+-- Tabla de Usuarios del Sistema
+CREATE TABLE usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(200) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(20),
+    rol ENUM('Gerente', 'Farmacéutico', 'Investigador') NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ultimo_acceso TIMESTAMP NULL,
+    INDEX idx_username (username),
+    INDEX idx_rol (rol),
+    INDEX idx_activo (activo)
+) ENGINE=InnoDB;
+
 -- Tabla de Clientes
 CREATE TABLE clientes (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
@@ -148,23 +165,6 @@ CREATE TABLE detalles_venta (
     FOREIGN KEY (id_lote) REFERENCES lotes(id_lote) ON DELETE RESTRICT,
     INDEX idx_venta (id_venta),
     INDEX idx_lote (id_lote)
-) ENGINE=InnoDB;
-
--- Tabla de Usuarios del Sistema
-CREATE TABLE usuarios (
-    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    nombre_completo VARCHAR(200) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    telefono VARCHAR(20),
-    rol ENUM('Gerente', 'Farmacéutico', 'Investigador') NOT NULL,
-    activo BOOLEAN DEFAULT TRUE,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ultimo_acceso TIMESTAMP NULL,
-    INDEX idx_username (username),
-    INDEX idx_rol (rol),
-    INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
 -- Tabla de Auditoría de Transacciones
