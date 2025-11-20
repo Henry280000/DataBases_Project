@@ -77,11 +77,23 @@ docker-compose logs app
 
 ## Solución de Problemas
 
-### Puerto ocupado
-Si el puerto 5001, 3306 o 27017 está ocupado, edita `docker-compose.yml`:
+### Puerto ocupado (ERROR MÁS COMÚN)
+
+**Si tienes MySQL o MongoDB instalados localmente**, los puertos estarán ocupados.
+
+**SOLUCIÓN**: El proyecto ya usa puertos alternativos:
+- MySQL Docker: Puerto **3307** (en lugar de 3306)
+- MongoDB Docker: Puerto **27018** (en lugar de 27017)
+- Flask: Puerto **5001** (libre normalmente)
+
+Esto evita conflictos con instalaciones locales. La aplicación se conecta automáticamente a los contenedores.
+
+Si aún tienes conflictos, cambia en `docker-compose.yml`:
 ```yaml
 ports:
-  - "5002:5001"  # Cambiar puerto externo
+  - "3308:3306"  # MySQL en puerto 3308
+  - "27019:27017"  # MongoDB en puerto 27019
+  - "5002:5001"  # Flask en puerto 5002
 ```
 
 ### Contenedor no inicia
@@ -101,14 +113,24 @@ docker-compose up -d
 
 ### Acceder a las bases de datos
 
-**MySQL**:
+**MySQL** (desde el contenedor):
 ```bash
 docker-compose exec mysql mysql -u pharmaflow_user -ppharmaflow123 pharmaflow_relational
 ```
 
-**MongoDB**:
+**MySQL** (desde tu máquina):
+```bash
+mysql -h 127.0.0.1 -P 3307 -u pharmaflow_user -ppharmaflow123 pharmaflow_relational
+```
+
+**MongoDB** (desde el contenedor):
 ```bash
 docker-compose exec mongodb mongosh -u admin -p admin123 pharmaflow_nosql
+```
+
+**MongoDB** (desde tu máquina):
+```bash
+mongosh mongodb://admin:admin123@localhost:27018/pharmaflow_nosql
 ```
 
 ## Ventajas de Docker

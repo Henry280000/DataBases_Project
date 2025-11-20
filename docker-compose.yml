@@ -12,7 +12,7 @@ services:
       MYSQL_USER: pharmaflow_user
       MYSQL_PASSWORD: pharmaflow123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/mysql_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -36,7 +36,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin123
       MONGO_INITDB_DATABASE: pharmaflow_nosql
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongodb_data:/data/db
       - ./database/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
