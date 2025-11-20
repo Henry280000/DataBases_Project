@@ -22,19 +22,11 @@ services:
     networks:
       - pharmaflow_network
     healthcheck:
-<<<<<<< HEAD
       # UPDATE THE PASSWORD HERE TO MATCH '401387':
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p401387"]
       interval: 10s
       timeout: 5s
       retries: 10
-=======
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
-      interval: 15s
-      timeout: 10s
-      retries: 20
-      start_period: 60s
->>>>>>> fdaeb872278c4e47369f2f47eb68571641e64435
 
   # MongoDB
   mongodb:
