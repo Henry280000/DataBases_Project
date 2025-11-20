@@ -38,3 +38,20 @@ Thumbs.db
 # Documentacion interna
 DOCUMENTACION_TECNICA.md
 ARQUITECTURA.md
+
+# Scripts de ejecución y mantenimiento
+check_requirements.bat
+check_requirements.sh
+start.bat
+start.sh
+update.bat
+update.sh
+install.bat
+install.sh
+
+# Documentación local y guías
+COMANDOS_UTILES.md
+COMO_EJECUTAR.md
+INSTALACION_WINDOWS.md
+INSTALACION.md
+INSTALACION_WINDOWS.md

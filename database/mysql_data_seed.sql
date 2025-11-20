@@ -3,11 +3,11 @@ USE pharmaflow_relational;
 
 -- Usuarios del Sistema
 INSERT INTO usuarios (username, password_hash, nombre_completo, email, telefono, rol, activo) VALUES
-('admin_gerente', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lH4vzXvNQZJa', 'Carlos Mendoza Ruiz', 'carlos.mendoza@pharmaflow.com', '5551234567', 'Gerente', TRUE),
-('maria_farm', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lH4vzXvNQZJa', 'María García López', 'maria.garcia@pharmaflow.com', '5552345678', 'Farmacéutico', TRUE),
-('jose_farm', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lH4vzXvNQZJa', 'José Rodríguez Pérez', 'jose.rodriguez@pharmaflow.com', '5553456789', 'Farmacéutico', TRUE),
-('ana_investigadora', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lH4vzXvNQZJa', 'Ana Martínez Sánchez', 'ana.martinez@pharmaflow.com', '5554567890', 'Investigador', TRUE),
-('luis_investigador', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lH4vzXvNQZJa', 'Luis Hernández Torres', 'luis.hernandez@pharmaflow.com', '5555678901', 'Investigador', TRUE);
+('admin_gerente', '$2b$12$d2QTPXH7rKat8Gxu6W51ueEBX8xWud7XEQp/6.qGAG.gW8Zptgymm', 'Carlos Mendoza Ruiz', 'carlos.mendoza@pharmaflow.com', '5551234567', 'Gerente', TRUE),
+('maria_farm', '$2b$12$4Ay.De/DOZUedA27YRxjAekZmyX0xj5TPYS3mQYuxvqTqJd.RwLIm', 'María García López', 'maria.garcia@pharmaflow.com', '5552345678', 'Farmacéutico', TRUE),
+('jose_farm', '$2b$12$JtVKGmAi19tb/T8TjQ/jgubNMgOiqy0KrBkwNVNoXbEbkRPlU.GRe', 'José Rodríguez Pérez', 'jose.rodriguez@pharmaflow.com', '5553456789', 'Farmacéutico', TRUE),
+('ana_investigadora', '$2b$12$9m3DZevBvpSF5mK71DOCD.SV5G0WJWClGtzzLg4AEBBxYlEaB0tlm', 'Ana Martínez Sánchez', 'ana.martinez@pharmaflow.com', '5554567890', 'Investigador', TRUE),
+('luis_investigador', '$2b$12$fkUaz/QQIVDUsttJ2csfzuulTpeD6KNyPBWCdBphKT8ka0sflVR.W', 'Luis Hernández Torres', 'luis.hernandez@pharmaflow.com', '5555678901', 'Investigador', TRUE);
 
 -- tipos de medicmanetos
 INSERT INTO categorias (nombre, descripcion) VALUES

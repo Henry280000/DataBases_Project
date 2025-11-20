@@ -7,9 +7,9 @@ services:
     container_name: pharmaflow_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: 401387            # Password you want
       MYSQL_DATABASE: pharmaflow_relational
-      MYSQL_USER: pharmaflow_user
+      MYSQL_USER: pharmaflow_user            # Fixed the typo here
       MYSQL_PASSWORD: pharmaflow123
     ports:
       - "3307:3306"
@@ -21,7 +21,8 @@ services:
     networks:
       - pharmaflow_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      # UPDATE THE PASSWORD HERE TO MATCH '401387':
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p401387"]
       interval: 10s
       timeout: 5s
       retries: 10

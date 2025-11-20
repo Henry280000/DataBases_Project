@@ -1,4 +1,3 @@
-
 -- Crear la base de datos
 DROP DATABASE IF EXISTS pharmaflow_relational;
 CREATE DATABASE pharmaflow_relational CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -43,7 +42,7 @@ CREATE TABLE lotes (
     fecha_caducidad DATE NOT NULL,
     ubicacion_almacen VARCHAR(50),
     estado ENUM('Disponible', 'Reservado', 'Caducado', 'Agotado') DEFAULT 'Disponible',
-    version INT DEFAULT 0, -- Para control de concurrencia optimista
+    version INT DEFAULT 0, 
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id_medicamento) ON DELETE RESTRICT,
@@ -273,8 +272,8 @@ BEGIN
     -- Obtener cantidad de detalles
     SET v_detalle_count = JSON_LENGTH(p_detalles);
     
-    -- Procesar cada detalle
-    WHILE v_index < v_detalle_count DO
+    -- Procesar cada detalle (Bucle con Etiqueta)
+    procesar_detalles: WHILE v_index < v_detalle_count DO
         SET v_lote_id = JSON_UNQUOTE(JSON_EXTRACT(p_detalles, CONCAT('$[', v_index, '].id_lote')));
         SET v_cantidad = JSON_UNQUOTE(JSON_EXTRACT(p_detalles, CONCAT('$[', v_index, '].cantidad')));
         SET v_precio = JSON_UNQUOTE(JSON_EXTRACT(p_detalles, CONCAT('$[', v_index, '].precio')));
@@ -290,7 +289,7 @@ BEGIN
             ROLLBACK;
             SET p_mensaje = CONCAT('Stock insuficiente para lote ID: ', v_lote_id);
             SET p_id_venta = NULL;
-            LEAVE;
+            LEAVE procesar_detalles; -- ERROR FIX: Added label here
         END IF;
         
         -- Registrar detalle de venta
@@ -312,12 +311,12 @@ BEGIN
             ROLLBACK;
             SET p_mensaje = 'Conflicto de concurrencia. Intente nuevamente.';
             SET p_id_venta = NULL;
-            LEAVE;
+            LEAVE procesar_detalles; -- ERROR FIX: Added label here
         END IF;
         
         SET v_total = v_total + (v_cantidad * v_precio);
         SET v_index = v_index + 1;
-    END WHILE;
+    END WHILE procesar_detalles;
     
     -- Actualizar total de la venta
     IF p_id_venta IS NOT NULL THEN

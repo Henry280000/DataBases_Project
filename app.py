@@ -71,14 +71,29 @@ def login():
     if not username or not password:
         return render_template('login.html', error='Usuario y contraseña requeridos')
     
-    # Buscar usuario
+# Buscar usuario
     user = mysql_models.get_user_by_username(username)
     
-    if not user or not verify_password(password, user['password_hash']):
+    credenciales_validas = False
+    if user:
+        try:
+            # 1. Obtener el hash de la BD
+            db_hash = user['password_hash']
+            
+            # 2. Asegurar que el hash de la BD sea bytes (Corrección del error Invalid Salt)
+            if isinstance(db_hash, str):
+                db_hash = db_hash.encode('utf-8')
+            
+            # 3. Verificar contraseña (convirtiendo el input del usuario a bytes también)
+            if bcrypt.checkpw(password.encode('utf-8'), db_hash):
+                credenciales_validas = True
+        except Exception as e:
+            print(f"Error verificando password manual: {e}")
+            credenciales_validas = False
+
+    if not credenciales_validas:
         return render_template('login.html', error='Credenciales inválidas')
-    
-    if not user['activo']:
-        return render_template('login.html', error='Usuario inactivo')
+
     
     # Crear sesión
     session['user_id'] = user['id_usuario']
