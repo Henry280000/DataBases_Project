@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: pharmaflow_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pharmaflow_relational
+      MYSQL_USER: pharmaflow_user
+      MYSQL_PASSWORD: pharmaflow123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/mysql_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/mysql_roles_privileges.sql:/docker-entrypoint-initdb.d/02-roles.sql
+      - ./database/mysql_data_seed.sql:/docker-entrypoint-initdb.d/03-data.sql
+    networks:
+      - pharmaflow_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: pharmaflow_mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: pharmaflow_nosql
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./database/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - pharmaflow_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Flask
+  app:
+    build: .
+    container_name: pharmaflow_app
+    restart: always
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: pharmaflow_user
+      MYSQL_PASSWORD: pharmaflow123
+      MYSQL_DATABASE: pharmaflow_relational
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_DATABASE: pharmaflow_nosql
+      SECRET_KEY: pharmaflow-secret-key-docker-2024
+      FLASK_ENV: production
+      PORT: 5001
+    ports:
+      - "5001:5001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - pharmaflow_network
+
+volumes:
+  mysql_data:
+  mongodb_data:
+
+networks:
+  pharmaflow_network:
+    driver: bridge

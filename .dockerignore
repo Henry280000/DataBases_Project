@@ -1,0 +1,41 @@
+# Archivos de entorno virtual y cache
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Archivos de configuración local
+.env
+.env.local
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Backups
+*.backup
+*.bak
+
+# Base de datos local
+*.db
+*.sqlite
+
+# Documentación interna
+DOCUMENTACION_TECNICA.md
+ARQUITECTURA.md
+documentaciontecnica.md

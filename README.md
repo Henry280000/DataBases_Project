@@ -39,7 +39,21 @@ PharmaFlow Solutions es un sistema robusto diseñado para empresas farmacéutica
 
 ##  Instalación
 
-### Windows
+### Opción 1: Docker (Recomendado - Funciona en Cualquier SO)
+
+Solo necesitas Docker Desktop instalado.
+
+```bash
+git clone https://github.com/Henry280000/DataBases_Project.git
+cd DataBases_Project
+docker-compose up -d
+```
+
+Accede a: http://localhost:5001
+
+**Guía completa**: Ver [DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)
+
+### Opción 2: Instalación Manual Windows
 
 **Guía completa**: Ver [INSTALACION_WINDOWS.md](INSTALACION_WINDOWS.md)
 
@@ -48,7 +62,7 @@ PharmaFlow Solutions es un sistema robusto diseñado para empresas farmacéutica
 2. Doble click en `start.bat`
 3. Abre http://localhost:5001
 
-### Linux / macOS
+### Opción 3: Instalación Manual Linux/macOS
 
 **Guía completa**: Ver [INSTALACION.md](INSTALACION.md)
 
