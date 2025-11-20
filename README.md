@@ -37,26 +37,32 @@ PharmaFlow Solutions es un sistema robusto diseñado para empresas farmacéutica
 - Gestión de ventas e inventario
 - Consulta de ensayos clínicos
 
-##  Instalación Rápida
+##  Instalación
 
-### IMPORTANTE: Lee INSTALACION.md antes de empezar
+### Windows
 
-### Paso 1: Verificar Requisitos
+**Guía completa**: Ver [INSTALACION_WINDOWS.md](INSTALACION_WINDOWS.md)
+
+**Instalación rápida**:
+1. Haz clic derecho en `install.bat` → "Ejecutar como administrador"
+2. Doble click en `start.bat`
+3. Abre http://localhost:5001
+
+### Linux / macOS
+
+**Guía completa**: Ver [INSTALACION.md](INSTALACION.md)
+
+**Instalación rápida**:
 ```bash
-# Ejecutar script de verificación
+# Verificar requisitos
 chmod +x check_requirements.sh
 ./check_requirements.sh
-```
 
-### Paso 2: Instalación Automática
-```bash
-# Dar permisos y ejecutar
+# Instalar
 chmod +x install.sh
 ./install.sh
-```
 
-### Paso 3: Iniciar Aplicación
-```bash
+# Iniciar
 chmod +x start.sh
 ./start.sh
 ```
