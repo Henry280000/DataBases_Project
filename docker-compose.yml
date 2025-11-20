@@ -6,6 +6,7 @@ services:
     image: mysql:8.0
     container_name: pharmaflow_mysql
     restart: always
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: 401387            # Password you want
       MYSQL_DATABASE: pharmaflow_relational
@@ -21,11 +22,19 @@ services:
     networks:
       - pharmaflow_network
     healthcheck:
+<<<<<<< HEAD
       # UPDATE THE PASSWORD HERE TO MATCH '401387':
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p401387"]
       interval: 10s
       timeout: 5s
       retries: 10
+=======
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+>>>>>>> fdaeb872278c4e47369f2f47eb68571641e64435
 
   # MongoDB
   mongodb:
@@ -44,10 +53,11 @@ services:
     networks:
       - pharmaflow_network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
 
   # Aplicación Flask
   app:

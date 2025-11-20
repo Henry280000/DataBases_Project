@@ -96,13 +96,30 @@ ports:
   - "5002:5001"  # Flask en puerto 5002
 ```
 
-### Contenedor no inicia
+### Contenedor no inicia o "unhealthy"
+
+**Ver logs detallados**:
 ```bash
-# Ver logs detallados
 docker-compose logs mysql
 docker-compose logs mongodb
 docker-compose logs app
 ```
+
+**Si MySQL dice "unhealthy"**:
+```bash
+# Ver estado específico
+docker inspect pharmaflow_mysql
+
+# Reintentar con más tiempo
+docker-compose down -v
+docker-compose up -d mysql
+# Esperar 60-90 segundos
+docker-compose logs mysql | grep "ready for connections"
+# Cuando veas "ready for connections" dos veces, continúa:
+docker-compose up -d
+```
+
+**Problema común**: MySQL tarda en inicializar la primera vez (puede tomar 1-2 minutos). El healthcheck ahora espera hasta 60 segundos antes de marcar como "unhealthy".
 
 ### Resetear todo
 ```bash
