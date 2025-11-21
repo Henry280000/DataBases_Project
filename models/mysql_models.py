@@ -705,7 +705,7 @@ class MySQLModels:
             SELECT 
                 COUNT(*) AS total_usuarios,
                 COUNT(CASE WHEN rol = 'Gerente' THEN 1 END) AS total_gerentes,
-                COUNT(CASE WHEN rol = 'Farmacéutico' THEN 1 END) AS total_farmaceuticos,
+                COUNT(CASE WHEN rol = 'Farmaceutico' THEN 1 END) AS total_farmaceuticos,
                 COUNT(CASE WHEN rol = 'Investigador' THEN 1 END) AS total_investigadores
             FROM usuarios
             WHERE activo = 1

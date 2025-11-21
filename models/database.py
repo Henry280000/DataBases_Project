@@ -29,6 +29,10 @@ class DatabaseManager:
             
             if self.mysql_conn.is_connected():
                 cursor = self.mysql_conn.cursor()
+                # Configurar UTF-8 para la conexión
+                cursor.execute("SET NAMES utf8mb4")
+                cursor.execute("SET CHARACTER SET utf8mb4")
+                cursor.execute("SET character_set_connection=utf8mb4")
                 cursor.execute("SELECT DATABASE();")
                 db_name = cursor.fetchone()[0]
                 cursor.close()
@@ -66,7 +70,15 @@ class DatabaseManager:
     
     def get_mysql_connection(self):
         try:
-            return self.mysql_pool.get_connection()
+            conn = self.mysql_pool.get_connection()
+            if conn and conn.is_connected():
+                cursor = conn.cursor()
+                # Configurar UTF-8 para cada conexión
+                cursor.execute("SET NAMES utf8mb4")
+                cursor.execute("SET CHARACTER SET utf8mb4")
+                cursor.execute("SET character_set_connection=utf8mb4")
+                cursor.close()
+            return conn
         except Error as e:
             print(f"Error obteniendo conexión MySQL: {e}")
             return None

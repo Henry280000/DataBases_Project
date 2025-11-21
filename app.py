@@ -156,20 +156,21 @@ def dashboard():
                 'ventas_mes': 0
             }
         
-        # Obtener inventario (con opcion de busqueda)
+        # Obtener todos los medicamentos (con opcion de busqueda)
         search_query = request.args.get('search', '')
         try:
-            inventario = mysql_models.get_inventario_actual()
+            inventario = mysql_models.get_all_medicamentos()
             
             # Filtrar por búsqueda si hay un término
             if search_query:
                 inventario = [
                     item for item in inventario 
-                    if search_query.lower() in item.get('nombre_medicamento', '').lower()
-                    or search_query.lower() in item.get('codigo_lote', '').lower()
+                    if search_query.lower() in item.get('nombre', '').lower()
+                    or search_query.lower() in item.get('principio_activo', '').lower()
+                    or search_query.lower() in item.get('categoria_nombre', '').lower()
                 ]
         except Exception as e:
-            print(f"Error obteniendo inventario: {e}")
+            print(f"Error obteniendo medicamentos: {e}")
             inventario = []
         
         # Obtener medicamentos próximos a caducar
@@ -828,7 +829,7 @@ def not_found(e):
 
 @app.route('/api/lotes-caducados', methods=['GET'])
 @login_required
-@role_required('Gerente', 'Farmacéutico')
+@role_required('Gerente', 'Farmaceutico')
 def get_lotes_caducados():
     # Obtener lista de lotes caducados
     try:
@@ -854,7 +855,7 @@ def eliminar_lote(lote_id):
 
 @app.route('/api/medicamentos/nuevo', methods=['POST'])
 @login_required
-@role_required('Gerente', 'Farmacéutico')
+@role_required('Gerente', 'Farmaceutico')
 def crear_medicamento_nuevo():
     # Crear un nuevo medicamento
     try:

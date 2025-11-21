@@ -69,6 +69,28 @@ CREATE TABLE proveedores (
     INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
+-- Tabla de Precios por Proveedor
+CREATE TABLE precios_proveedor (
+    id_precio INT AUTO_INCREMENT PRIMARY KEY,
+    id_proveedor INT NOT NULL,
+    id_medicamento INT NOT NULL,
+    precio_base DECIMAL(10, 2) NOT NULL CHECK (precio_base > 0),
+    cantidad_minima_descuento INT DEFAULT 0,
+    porcentaje_descuento DECIMAL(5, 2) DEFAULT 0,
+    fecha_vigencia_inicio DATE NOT NULL,
+    fecha_vigencia_fin DATE,
+    estado ENUM('Activo', 'Inactivo') DEFAULT 'Activo',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor) ON DELETE CASCADE,
+    FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id_medicamento) ON DELETE CASCADE,
+    INDEX idx_proveedor (id_proveedor),
+    INDEX idx_medicamento (id_medicamento),
+    INDEX idx_estado (estado),
+    INDEX idx_vigencia (fecha_vigencia_inicio, fecha_vigencia_fin),
+    UNIQUE KEY uk_proveedor_medicamento (id_proveedor, id_medicamento, fecha_vigencia_inicio)
+) ENGINE=InnoDB;
+
 -- Tabla de Órdenes de Compra
 CREATE TABLE ordenes_compra (
     id_orden_compra INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,7 +132,7 @@ CREATE TABLE usuarios (
     nombre_completo VARCHAR(200) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     telefono VARCHAR(20),
-    rol ENUM('Gerente', 'Farmacéutico', 'Investigador') NOT NULL,
+    rol ENUM('Gerente', 'Farmaceutico', 'Investigador') NOT NULL,
     activo BOOLEAN DEFAULT TRUE,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ultimo_acceso TIMESTAMP NULL,

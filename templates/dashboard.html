@@ -95,13 +95,12 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Código Lote</th>
+                                <th>ID</th>
                                 <th>Medicamento</th>
+                                <th>Principio Activo</th>
                                 <th>Categoría</th>
-                                <th>Cantidad</th>
-                                <th>Precio Unit.</th>
-                                <th>Caducidad</th>
-                                <th>Días Restantes</th>
+                                <th>Stock Total</th>
+                                <th>Precio Promedio</th>
                                 <th>Estado</th>
                             </tr>
                         </thead>
@@ -109,42 +108,35 @@
                             {% if inventario %}
                                 {% for item in inventario %}
                                 <tr>
-                                    <td>{{ item.codigo_lote }}</td>
-                                    <td>{{ item.nombre_medicamento }}</td>
-                                    <td>{{ item.categoria }}</td>
-                                    <td>{{ item.cantidad_disponible }}</td>
-                                    <td>${{ "{:,.2f}".format(item.precio_unitario) }}</td>
-                                    <td>{{ item.fecha_caducidad.strftime('%d/%m/%Y') if item.fecha_caducidad else 'N/A' }}</td>
+                                    <td>{{ item.id }}</td>
+                                    <td><strong>{{ item.nombre }}</strong></td>
+                                    <td>{{ item.principio_activo }}</td>
+                                    <td>{{ item.categoria_nombre }}</td>
                                     <td>
-                                        {% if item.dias_para_caducar is not none %}
-                                            {% if item.dias_para_caducar < 0 %}
-                                                <span style="color: var(--danger-color); font-weight: 600;">{{ item.dias_para_caducar }}</span>
-                                            {% else %}
-                                                {{ item.dias_para_caducar }}
-                                            {% endif %}
+                                        {% if item.stock_total > 0 %}
+                                            {{ "{:,.0f}".format(item.stock_total) }}
+                                        {% else %}
+                                            <span style="color: var(--warning-color);">Sin stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.precio > 0 %}
+                                            ${{ "{:,.2f}".format(item.precio) }}
                                         {% else %}
                                             -
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if item.dias_para_caducar is not none %}
-                                            {% if item.dias_para_caducar < 0 %}
-                                                <span class="badge badge-danger">CADUCADO</span>
-                                            {% elif item.dias_para_caducar < 30 %}
-                                                <span class="badge badge-danger">Crítico</span>
-                                            {% elif item.dias_para_caducar < 90 %}
-                                                <span class="badge badge-warning">Alerta</span>
-                                            {% else %}
-                                                <span class="badge badge-success">Vigente</span>
-                                            {% endif %}
+                                        {% if item.stock_total > 0 %}
+                                            <span class="badge badge-success">Disponible</span>
                                         {% else %}
-                                            <span class="badge badge-success">Vigente</span>
+                                            <span class="badge badge-warning">Sin stock</span>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
-                                <tr><td colspan="8" style="text-align: center;">No hay datos de inventario disponibles</td></tr>
+                                <tr><td colspan="7" style="text-align: center;">No hay medicamentos disponibles</td></tr>
                             {% endif %}
                         </tbody>
                     </table>
