@@ -1,7 +1,3 @@
--- ============================================
--- SISTEMA DE ACTUALIZACIÓN AUTOMÁTICA DE PRECIOS
--- ============================================
-
 USE pharmaflow_relational;
 
 -- 1. TRIGGER: Crear precios automáticamente para nuevos medicamentos
